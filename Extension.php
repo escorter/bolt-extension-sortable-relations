@@ -22,44 +22,46 @@ class Extension extends BaseExtension
                 return new IntegrityChecker($app);
             }
         );
-        
-        $check = $this->app['integritychecker']->checkTablesIntegrity();
-        $this->addCss('assets/select2.sortable.css', 1);
-        $this->addJavascript('assets/select2.sortable.min.js', 1);
-        
-        $this->app['dispatcher']->addListener(\Bolt\Events\StorageEvents::POST_SAVE, array($this, 'saveRelationOrder'));
 
+        if ($this->app['config']->getWhichEnd() == 'backend') {
+            $this->app['integritychecker']->checkTablesIntegrity();
+            $this->app['htmlsnippets'] = true;
+            $this->addCss('assets/select2.sortable.css', 1);
+            $this->addJavascript('assets/select2.sortable.min.js', 1);
+
+            $this->app['dispatcher']->addListener(\Bolt\Events\StorageEvents::POST_SAVE, array($this, 'saveRelationOrder'));
+        }
         $this->addTwigFunction('relationSort', 'relationSort');
         $this->addTwigFunction('getSortedRelations', 'getSortedRelations');
 
 
     }
-    
-    public function relationSort($arr1, $arr2)
+
+    public function relationSort($sortArray, $dataArray)
     {
         $index = [];
-        foreach ($arr2 as $key => $obj) {
-            $index[] = $key;
+        foreach ($dataArray as $key => $obj) {
+            $index[$obj->id] = $key;
         }
+
         $compiled = [];        
-        foreach ($arr1 as $val) {
+        foreach ($sortArray as $val) {
             $relatedId = $val['to_id'];
-            $compiled[$relatedId] = $arr2[$relatedId];
-            unset($index[array_search($relatedId, $index)]);
-        }
-        
-        foreach ($index as $val) {
-            $compiled[$val] = $arr2[$val];
+            $compiled[$relatedId] = $dataArray[$index[$relatedId]];
         }
         
         return $compiled;
     }
     
-    public function getSortedRelations($content, $relcontenttype)
+    public function getSortedRelations($content, $relcontenttype, $filtertype = null)
     {
         $id = $content['id'];
         
-        $query = "SELECT * from bolt_relations WHERE from_id=$id AND from_contenttype='$relcontenttype' ORDER BY sort;";
+        $query = "SELECT * from bolt_relations WHERE from_id=$id AND from_contenttype='$relcontenttype'";
+        if(!is_null($filtertype)) {
+            $query .= " AND to_contenttype='$filtertype'";
+        }
+        $query .= "ORDER BY sort;";
         $result = $this->app['db']->fetchAll($query);
         
         return $result;
