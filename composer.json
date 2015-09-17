@@ -1,14 +1,12 @@
 {
-    "name": "gerritgarbereder/sortable-relations",
+    "name": "rossriley/sortable-relations",
     "description": "An extension to allow relations to be sortable",
     "type": "bolt-extension",
     "require": {
         "bolt/bolt": ">1.9,<3.0.0"
     },
     "license": "MIT",
-    "authors": [
-	{"name": "Ross Riley", "email": "riley.ross@gmail.com"}
-    	{"name": "Gerrit Garbereder", "email": "info@garbereder.de"}
+    "authors": [{"name": "Ross Riley", "email": "riley.ross@gmail.com"}
     ],
     "keywords": [
         "relations", "sortable"
